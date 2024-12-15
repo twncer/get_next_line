@@ -6,163 +6,110 @@
 /*   By: btuncer <btuncer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:07:28 by btuncer           #+#    #+#             */
-/*   Updated: 2024/12/09 15:06:55 by btuncer          ###   ########.fr       */
+/*   Updated: 2024/12/15 10:27:15 by btuncer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdbool.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-bool fnot(bool condition)
+char	*trim_buffer(char **buffer, ssize_t trim_size)
 {
-    return (!condition);  
-}
-int len(char *str)
-{
-    int counter = 0;
-    while (*str)
-    {
-        counter = counter + 1;
-        str++;
-    } 
-    return (counter);
-}
+	char	*res;
+	ssize_t	counter;
 
-char *stash(char *buffer, ssize_t size, ssize_t queue)
-{
-    static char *fd_content;
-    char *temp;
-    ssize_t counter;
-    
-    if (size == -1)
-        return (fd_content);
-    counter = 0;
-    if (queue == 0)
-    {
-        fd_content = malloc(size + 1);
-        while (buffer[counter])
-        {
-            fd_content[counter] = buffer[counter];
-            counter++;
-        }
-        fd_content[counter] = '\0';
-    }
-    else
-    {
-        temp = malloc(len(fd_content) + 1);
-        while (fd_content[counter])
-        {
-            temp[counter] = fd_content[counter];
-            counter = counter + 1;
-        }
-        temp[counter] = '\0';
-        free(fd_content);
-        fd_content = malloc(len(temp) + len(buffer) + 1);
-        counter = 0;
-        while (temp[counter])
-        {
-            fd_content[counter] = temp[counter];
-            counter++;
-        }
-        while (buffer[counter - len(temp)])
-        {
-            fd_content[counter] = buffer[counter - len(temp)];
-            counter++;
-        }
-        free(temp);
-    }
-    return fd_content;
+	res = malloc(len(*buffer) - trim_size + 1);
+	if (fnot(res))
+		return (NULL);
+	counter = 0;
+	while ((*buffer)[counter + trim_size])
+	{
+		res[counter] = (*buffer)[counter + trim_size];
+		counter++;
+	}
+	res[counter] = '\0';
+	free(*buffer);
+	(*buffer) = res;
+	return ("OK");
 }
 
-ssize_t set_fd_content(int fd)
+char	*get_till_nl(char **buffer, ssize_t read_size)
 {
-    char *buffer;
-    ssize_t len_per;
-    ssize_t len_fd;
-    ssize_t counter;
-    
-    buffer = malloc(DEFAULT_BUFFER_SIZE + 1);
-    len_fd = 0;
-    counter = 0;
-    while ((len_fd == 0 && counter == 0) || len_fd / counter == DEFAULT_BUFFER_SIZE)
-    {
-        len_per = read(fd, buffer, DEFAULT_BUFFER_SIZE);
-        len_fd = len_fd + len_per;
-        buffer[len_per] = '\0';
-        stash(buffer, len_per, counter);
-        counter++;
-    }
-    free(buffer);
-    return (len_fd);
+	char	*res;
+	ssize_t	counter;
+	ssize_t	counter2;
+
+	if (read_size == 0 && *buffer)
+		return (*buffer);
+	counter = 0;
+	while (fnot((*buffer)[counter] == '\n'))
+		counter++;
+	res = malloc(counter + 2);
+	if (!res)
+		return (NULL);
+	counter2 = 0;
+	while (counter + 1 > counter2)
+	{
+		res[counter2] = (*buffer)[counter2];
+		counter2++;
+	}
+	res[counter2] = '\0';
+	trim_buffer(buffer, counter + 1);
+	return (res);
 }
 
-void get_next_line(int fd)
+char	*append_to_buffer(char **buffer, char **append)
 {
-    static int state_index = 0;
-    char *fd_content;
-    int nl_counter;
-    int counter;
-    if (state_index == 0)
-        set_fd_content(fd);
-    fd_content = stash(NULL, -1, 0);
-    counter = 0;
-    nl_counter = 0;
-    while(fd_content[counter])
-    {
-        if (state_index == nl_counter)
-        {
-            while (fnot(fd_content[counter] == '\n') && fd_content[counter])
-            {
-                printf("%c", fd_content[counter]);
-                counter++;
-            }
-            printf("\n");
-        } 
-        if (fd_content[counter] == '\n')
-            nl_counter = nl_counter + 1;
-        counter++;
-    }
-    state_index = state_index + 1;
+	char			*new_buffer;
+	unsigned int	counter;
+
+	counter = 0;
+	new_buffer = malloc(len(*buffer) + len(*append) + 1);
+	if (fnot(new_buffer))
+		return (NULL);
+	while ((*buffer)[counter])
+	{
+		new_buffer[counter] = (*buffer)[counter];
+		counter++;
+	}
+	while ((*append)[counter - len(*buffer)])
+	{
+		new_buffer[counter] = (*append)[counter - len(*buffer)];
+		counter++;
+	}
+	new_buffer[counter] = '\0';
+	free(*buffer);
+	free(*append);
+	(*buffer) = new_buffer;
+	return ("OK");
 }
 
-int main()
+char	*get_next_line(int fd)
 {
-    int fd = open("yo", O_RDONLY);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    get_next_line(fd);
-    close(fd);
+	static char		*fd_content = NULL;
+	static ssize_t	read_size = -1;
+	char			*buffer;
+
+	if (read_size == 0 || fd < 0)
+		return (NULL);
+	if (fd_content == NULL)
+	{
+		fd_content = malloc(1);
+		fd_content[0] = '\0';
+	}
+	while (fnot(in(fd_content, '\n') || read_size == 0))
+	{
+		buffer = malloc(BUFFER_SIZE + 1);
+		if (fnot(buffer))
+			return (NULL);
+		read_size = read(fd, buffer, BUFFER_SIZE);
+		buffer[read_size] = '\0';
+		if (fnot(append_to_buffer(&fd_content, &buffer)))
+			return (NULL);
+	}
+	return (get_till_nl(&fd_content, read_size));
 }
