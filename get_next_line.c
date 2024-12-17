@@ -6,7 +6,7 @@
 /*   By: btuncer <btuncer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:07:28 by btuncer           #+#    #+#             */
-/*   Updated: 2024/12/15 10:27:15 by btuncer          ###   ########.fr       */
+/*   Updated: 2024/12/17 15:08:12 by btuncer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,8 @@ char	*get_till_nl(char **buffer, ssize_t read_size)
 	ssize_t	counter;
 	ssize_t	counter2;
 
-	if (read_size == 0 && *buffer)
-		return (*buffer);
+	if (read_size == 0)
+		return (printf("SA"), *buffer);
 	counter = 0;
 	while (fnot((*buffer)[counter] == '\n'))
 		counter++;
@@ -91,22 +91,24 @@ char	*append_to_buffer(char **buffer, char **append)
 char	*get_next_line(int fd)
 {
 	static char		*fd_content = NULL;
-	static ssize_t	read_size = -1;
+	static ssize_t	read_size = 1;
 	char			*buffer;
 
-	if (read_size == 0 || fd < 0)
+	if (fd < 0)
 		return (NULL);
 	if (fd_content == NULL)
 	{
 		fd_content = malloc(1);
 		fd_content[0] = '\0';
 	}
-	while (fnot(in(fd_content, '\n') || read_size == 0))
+	while (fnot(in(fd_content, '\n')) && read_size > 0)
 	{
 		buffer = malloc(BUFFER_SIZE + 1);
 		if (fnot(buffer))
 			return (NULL);
 		read_size = read(fd, buffer, BUFFER_SIZE);
+		if (read_size == -1)
+			return (free(buffer), NULL);
 		buffer[read_size] = '\0';
 		if (fnot(append_to_buffer(&fd_content, &buffer)))
 			return (NULL);
