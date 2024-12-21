@@ -6,7 +6,7 @@
 /*   By: btuncer <btuncer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/20 17:55:22 by btuncer           #+#    #+#             */
-/*   Updated: 2024/12/21 22:34:34 by btuncer          ###   ########.fr       */
+/*   Updated: 2024/12/22 02:24:04 by btuncer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ char	*get_till_nl(char **buffer, bool eof)
 	ssize_t	counter2;
 
 	if ((*buffer) == NULL || (*buffer)[0] == '\0')
-		return (NULL);
+		return (free(*buffer), NULL);
 	if (eof)
 		return (gnl_eof(buffer));
 	counter = 0;
@@ -103,10 +103,9 @@ char	*get_next_line(int fd)
 {
 	static char		*fd_content;
 	static ssize_t	read_size = 1;
-	static bool		eof = false;
 	char			*temp_buffer;
 
-	if (read_size <= 0 || eof || BUFFER_SIZE <= 0 || fd < 0)
+	if (read_size <= 0 || BUFFER_SIZE <= 0 || fd < 0)
 		return (NULL);
 	if (fnot(fd_content))
 	{
@@ -120,11 +119,10 @@ char	*get_next_line(int fd)
 			return (NULL);
 		read_size = read(fd, temp_buffer, BUFFER_SIZE);
 		if (read_size == -1)
-			return (free(temp_buffer), NULL);
+			return (free(fd_content), free(temp_buffer), NULL);
 		temp_buffer[read_size] = '\0';
 		if (append_to_buffer(&fd_content, &temp_buffer) == NULL)
 			return (free(temp_buffer), NULL);
 	}
-	eof = (read_size == 0 || (fd >= 0 && fd <= 2));
-	return (get_till_nl(&fd_content, eof));
+	return (get_till_nl(&fd_content, (read_size == 0)));
 }
