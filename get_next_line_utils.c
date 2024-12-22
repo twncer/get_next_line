@@ -6,11 +6,12 @@
 /*   By: btuncer <btuncer@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 15:07:31 by btuncer           #+#    #+#             */
-/*   Updated: 2024/12/22 02:09:40 by btuncer          ###   ########.fr       */
+/*   Updated: 2024/12/22 18:22:57 by btuncer          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 bool	fnot(bool condition)
@@ -20,7 +21,7 @@ bool	fnot(bool condition)
 
 bool	in(char *str, char c)
 {
-	unsigned int	counter;
+	ssize_t	counter;
 
 	counter = 0;
 	while (str[counter])
@@ -55,4 +56,21 @@ void	setstr(char **a, char **b, ssize_t start)
 		(*a)[counter + start] = (*b)[counter];
 		counter++;
 	}
+}
+
+char	*conf_buffer(char **buffer, bool set)
+{
+	if (set)
+	{
+		(*buffer) = malloc(1);
+		if (fnot(*buffer))
+			return (NULL);
+		(*buffer)[0] = '\0';
+	}
+	else
+	{
+		free(*buffer);
+		*buffer = NULL;
+	}
+	return ("OK");
 }
